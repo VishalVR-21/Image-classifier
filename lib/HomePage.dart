@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:teachablemachineapp/About.dart';
 import 'dart:io';
 import 'dart:async';
 import 'package:tflite/tflite.dart';
@@ -11,30 +12,29 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   PickedFile? _image;
-  bool _loading =false ; 
-  List<dynamic>?_outputs;
+  bool _loading = false;
+  List<dynamic>? _outputs;
 
   void initState() {
     super.initState();
     _loading = true;
-    
+
     loadModel().then((value) {
       setState(() {
         _loading = false;
       });
     });
-}
-
+  }
 
 //Load the Tflite model
-loadModel() async {
+  loadModel() async {
     await Tflite.loadModel(
       model: "assets/model_unquant.tflite",
       labels: "assets/labels.txt",
     );
-}
+  }
 
-classifyImage(image) async {
+  classifyImage(image) async {
     var output = await Tflite.runModelOnImage(
       path: image.path,
       numResults: 2,
@@ -48,6 +48,7 @@ classifyImage(image) async {
       _outputs = output;
     });
   }
+
   Future pickImage() async {
     var image = await _picker.getImage(source: ImageSource.gallery);
     if (image == null) return null;
@@ -58,17 +59,22 @@ classifyImage(image) async {
     classifyImage(image);
   }
 
-
   final ImagePicker _picker = ImagePicker();
 
-    @override
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      
       appBar: AppBar(
         title: const Text('Image Classification'),
-        backgroundColor: Colors.purple,
-        
+        backgroundColor: Color.fromARGB(255, 6, 22, 248),
+        actions: [
+          IconButton(
+              onPressed: () {
+                Navigator.push(context,
+                    MaterialPageRoute(builder: ((context) => AboutUs())));
+              },
+              icon: Icon(Icons.contacts))
+        ],
       ),
       body: _loading
           ? Container(
@@ -76,32 +82,31 @@ classifyImage(image) async {
               child: CircularProgressIndicator(),
             )
           : Container(
-                      
-                width: MediaQuery.of(context).size.width,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    _image == null ? Container() : Image.file(File(_image!.path)),
-                    SizedBox(
-                      height: 20,
-                    ),
-                    _outputs != null
-                        ? Text('${_outputs![0]["label"]}',
-                            style: TextStyle(
-                              color: Colors.black,
-                              fontSize: 20.0,
-                              background: Paint()..color = Colors.white,
-                            ),
-                          )
-                        : Container()
-                  ],
-                ),
+              width: MediaQuery.of(context).size.width,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _image == null ? Container() : Image.file(File(_image!.path)),
+                  SizedBox(
+                    height: 20,
+                  ),
+                  _outputs != null
+                      ? Text(
+                          '${_outputs![0]["label"]}',
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontSize: 20.0,
+                            background: Paint()..color = Colors.white,
+                          ),
+                        )
+                      : Container()
+                ],
               ),
-          
+            ),
       floatingActionButton: FloatingActionButton(
         onPressed: _optiondialogbox,
-        backgroundColor: Colors.purple,
+        backgroundColor: Color.fromARGB(255, 6, 22, 248),
         child: Icon(Icons.image),
       ),
     );
@@ -113,8 +118,7 @@ classifyImage(image) async {
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            backgroundColor: Colors.purple,
-            
+            backgroundColor: Color.fromARGB(255, 6, 22, 248),
             content: SingleChildScrollView(
               child: ListBody(
                 children: <Widget>[
@@ -144,7 +148,7 @@ classifyImage(image) async {
     var image = await _picker.getImage(source: ImageSource.camera);
 
     setState(() {
-      _image = image ;
+      _image = image;
     });
   }
 
@@ -153,9 +157,7 @@ classifyImage(image) async {
     var piture = await _picker.getImage(source: ImageSource.gallery);
     setState(() {
       _image = piture;
-    }
-     
-    );
+    });
     classifyImage(piture);
   }
 }
